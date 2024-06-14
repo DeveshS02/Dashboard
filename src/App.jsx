@@ -162,9 +162,11 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    fetchNodesData();
-    fetchData();
-    fetchHoverData();
+    if(authenticated){
+      fetchNodesData();
+      fetchData();
+      fetchHoverData();
+    }
   }, [authenticated]);
 
   const filterDataByNames = (data, names) =>
