@@ -14,7 +14,7 @@ import icon_waternode_digital from '../images/sheni-new.png';
 import icon_waternode_digital_inactive from '../images/not-sheni-new.png';
 import image2 from "../images/hydrowfinal.png";
 
-const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loading, setNavClosing, setNavOpening, filteredNames }) => {
+const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loading, setNavClosing, setNavOpening, filteredNames, location }) => {
   const [selectedNode, setSelectedNode] = useState({ data: null, type: null, attributes: [], isAnalog: false, name: null, analogOrDigital: null });
   const [filteredData, setFilteredData] = useState({tank: [], borewell: [], water: []})
   const iconConfig = {
@@ -24,7 +24,9 @@ const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loadin
     water_digital: [createCustomIcon(icon_waternode_digital), createCustomIcon(icon_waternode_digital_inactive)]
   };
 
-  const isActive = (createdAt) => (new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24) <= 2;
+  const isActive = (createdAt) => (new Date() - new Date(createdAt)) / (1000 * 60 * 60) <= 12;
+
+  const convertMmToFeet = (mm) => (mm / 304.8).toFixed(2);
 
   const shouldDisplayNode = (node, type) => {
     if (selectedOptions.length === 0) return true;
@@ -98,7 +100,7 @@ const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loadin
 
   const getUnit = (key) => {
     const unitMapping = {
-      "Water Level": "cm",
+      "Water Level": location === 'RN' ? 'ft' : 'cm',
       "Temperature": "°C",
       "Total Volume": "m³",
       "Flow Rate": "kL/hr",
@@ -124,7 +126,7 @@ const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loadin
             {data ? Object.entries(data).map(([key, value]) => (
               <div key={key} className="text-sm">
                 <span>{key}: </span>
-                <span>{value} {getUnit(key)}</span> {/* Add units */}
+                <span>{ (nodeType === 'borewell' && location === 'RN' && key ==='Water Level') ? convertMmToFeet(value) : value} {getUnit(key)}</span>
               </div>
             )) : (
               <span className="text-sm">No data available</span>
@@ -172,7 +174,8 @@ const MapComponent = ({ selectedOptions, nodes, latestData, data, bounds, loadin
             nodeType={selectedNode.type} 
             analogOrDigital={selectedNode.analogOrDigital} 
             allData={filteredData} 
-            nodeName={selectedNode.name} />
+            nodeName={selectedNode.name}
+            location= {location} />
         </Modal>
       )}
     </div>

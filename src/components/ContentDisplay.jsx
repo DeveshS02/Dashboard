@@ -11,8 +11,10 @@ const ContentDisplay = ({
   setSelectedDetail,
   setNavClosing,
   setNavOpening,
+  location
 }) => {
   const containerRef = useRef(null);
+
   const [allNodesData, setAllNodesData] = useState([]);
   useEffect(() => {
     const combinedData = [...WaterMeterData, ...tankData, ...borewellData];
@@ -28,6 +30,8 @@ const ContentDisplay = ({
       });
     }
   };
+
+  const convertMmToFeet = (mm) => (mm / 304.8).toFixed(2);
 
   useEffect(() => {
     const handleWheel = (event) => {
@@ -51,6 +55,7 @@ const ContentDisplay = ({
   const handleNodeClick = (nodeType, nodeName) => {
     const nodeData = data[nodeType][nodeName];
     if (nodeType === "water") {
+      console.log(location);
       const node = nodes.water.find((node) => node.name === nodeName);
       const isAnalog = node?.parameters.includes("isanalog");
       const analogOrDigital = isAnalog ? "analog" : "digital";
@@ -106,7 +111,7 @@ const ContentDisplay = ({
                 if (x === "-") {
                   return <span className="value"> N/A </span>;
                 } else {
-                  return <span className="value">{x} L</span>;
+                  return <span className="value">{x} kL</span>;
                 }
               })()}
             </div>
@@ -205,7 +210,7 @@ const ContentDisplay = ({
               if (x === "-") {
                 return <span className="value"> N/A </span>;
               } else {
-                return <span className="value">{x} cm</span>;
+                return <span className="value">{`${location === 'RN' ? convertMmToFeet(x) : x}  ${location === 'RN' ? 'ft' : 'cm'}`}</span>;
               }
             })()}
           </div>

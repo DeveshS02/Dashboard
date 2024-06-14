@@ -5,7 +5,7 @@ import Modal from "./Modal";
 
 const tabs = ["AllNodes", "WaterMeter", "WaterTank", "Borewell"];
 
-const StatusNode = ({ onClose, data, nodes, setNavOpening, setNavClosing }) => {
+const StatusNode = ({ onClose, data, nodes, setNavOpening, setNavClosing, location }) => {
   const [activeTab, setActiveTab] = useState("AllNodes");
   const [filter, setFilter] = useState("All");
   const [isClosing, setIsClosing] = useState(false);
@@ -186,6 +186,7 @@ const StatusNode = ({ onClose, data, nodes, setNavOpening, setNavClosing }) => {
               setSelectedDetail={setSelectedDetail}
               setNavClosing={setNavClosing}
               setNavOpening={setNavOpening}
+              location={location}
             />
           )}
         </div>
@@ -200,6 +201,7 @@ const StatusNode = ({ onClose, data, nodes, setNavOpening, setNavClosing }) => {
             analogOrDigital={selectedDetail.analogOrDigital}
             allData={data}
             nodeName={selectedDetail.name}
+            location={location}
           />
         </Modal>
       )}

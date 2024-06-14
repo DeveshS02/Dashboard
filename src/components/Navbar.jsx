@@ -17,6 +17,7 @@ const Navbar = ({
   setNavOpening,
   setNavClosing,
   statusButtonRef,
+  location
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -179,6 +180,7 @@ const Navbar = ({
           nodes={nodes}
           setNavClosing={setNavClosing}
           setNavOpening={setNavOpening}
+          location={location}
         />
       )}
     </div>

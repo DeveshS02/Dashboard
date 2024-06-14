@@ -3,7 +3,7 @@ import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigital }) => {
+const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigital, location }) => {
   const hasMultipleAttributes = attributes.length > 1;
   const [viewMode, setViewMode] = useState(hasMultipleAttributes ? 'all' : 'single');
   const [selectedAttribute, setSelectedAttribute] = useState(attributes[0]);
@@ -16,6 +16,8 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
     const lightness = 50 + (Math.random() - 0.5) * 10; // Slight random variation in lightness
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
+
+  const convertMmToFeet = (mm) => (mm / 304.8).toFixed(2);
   
   const chartDataSingle = useMemo(() => {
     const colors = {};
@@ -25,7 +27,13 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
       colors[node] = color;
       return {
         label: node,
-        data: allData[nodeType][node].map(entry => entry[selectedAttribute]),
+        data: allData[nodeType][node].map(entry => {
+          let value = entry[selectedAttribute];
+          if (location === 'RN' && nodeType === 'borewell' && selectedAttribute === 'Water Level') {
+            value = convertMmToFeet(value);
+          }
+          return value;
+        }),
         borderColor: color,
         fill: false
       };
@@ -41,7 +49,13 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
     labels: data.map(entry => new Date(entry.Last_Updated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
     datasets: [{
       label: attr,
-      data: data.map(entry => entry[attr]),
+      data: data.map(entry => {
+        let value = entry[attr];
+        if (location === 'RN' && nodeType === 'borewell' && attr === 'Water Level') {
+          value = convertMmToFeet(value);
+        }
+        return value;
+      }),
       borderColor: getDistinctColor(index, total),
       fill: false
     }]
@@ -218,7 +232,7 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
   const getUnit = (key) => {
     
     const unitMapping = {
-      "Water Level": "cm",
+      "Water Level": location === 'RN' ? 'ft' : 'cm',
       "Temperature": "°C",
       "Total Volume": "kL",
       "Flow Rate": "kL/hr",
@@ -335,7 +349,7 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
             {viewMode === 'single' && (
               <div className='latest-data'>
                 <span>
-                {` (Latest Reading ${latestData[selectedAttribute]} ${getUnit(selectedAttribute)})`}
+                {` (Latest Reading ${location === 'RN' ? convertMmToFeet(latestData[selectedAttribute]) : latestData[selectedAttribute]} ${getUnit(selectedAttribute)})`}
               </span>
               <span>
                 {latestData['Last_Updated']}

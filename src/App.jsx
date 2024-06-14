@@ -32,7 +32,7 @@ var loc;
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
-  const [userData, setUserData] = useState("");
+  // const [userData, setUserData] = useState("");
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -57,21 +57,13 @@ const App = () => {
 
   const handleLogin = (isAuthenticated, Data) => {
     setAuthenticated(isAuthenticated);
-    console.log("here")
-    console.log(Data)
     if (isAuthenticated) {
-      console.log("here")
-      console.log(Data.location)
-      setUserData(Data.location);
       loc=Data.location;
-      console.log(loc);
     }
   };
 
   const fetchNodesData = useCallback(async () => {
     setLoading(true);
-    console.log("me")
-    console.log(loc)
     try {
       const [tankNodes, borewellNodes, waterNodes] = await Promise.all([
         fetch_data("https://backtest-ds7q.onrender.com/water/staticnodesC"),
@@ -290,6 +282,7 @@ const App = () => {
          setNavClosing={setNavClosing}
          setNavOpening={setNavOpening}
          statusButtonRef={statusButtonRef}
+         location={loc}
        />
      
 
@@ -303,6 +296,7 @@ const App = () => {
        setNavClosing={setNavClosing}
        setNavOpening={setNavOpening}
        filteredNames={filteredNames}
+       location={loc}
      />
 
      <div className="fixed bottom-4 left-4 p-2 z-50">

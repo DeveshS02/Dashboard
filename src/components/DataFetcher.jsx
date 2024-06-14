@@ -9,6 +9,7 @@ const DataFetcher = ({
   setSelectedDetail,
   setNavOpening,
   setNavClosing,
+  location
 }) => {
   const [tankData, settankData] = useState([]);
   const [WaterMeterData, setWaterMeterData] = useState([]);
@@ -139,6 +140,7 @@ const DataFetcher = ({
       setSelectedDetail={setSelectedDetail}
       setNavClosing={setNavClosing}
       setNavOpening={setNavOpening}
+      location={location}
     />
   );
 };
