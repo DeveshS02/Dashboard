@@ -912,5 +912,5 @@ color:#05337d;
 }
 .secondbg{
   background: transparent;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
 }

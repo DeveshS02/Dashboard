@@ -66,9 +66,9 @@ const App = () => {
     setLoading(true);
     try {
       const [tankNodes, borewellNodes, waterNodes] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/staticnodesC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewellnodesC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/waterC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/staticnodesC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/borewellnodesC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/waterC"),
       ]);
 
       const filterNodesByLocation = (nodes) =>
@@ -130,9 +130,9 @@ const App = () => {
   const fetchData = useCallback(async () => {
     try {
       const [tankData, borewellData, waterData] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/tankdata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewellgraphC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/latestwaterC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/tankdata"),
+        fetch_data("https://api-gateway-green.vercel.app/water/borewellgraphC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/latestwaterC"),
       ]);
       setData({
         tank: renameKeys(tankData),
@@ -165,7 +165,7 @@ const App = () => {
     if(authenticated){
       fetchNodesData();
       fetchData();
-      fetchHoverData();
+      // fetchHoverData();
     }
   }, [authenticated]);
 
