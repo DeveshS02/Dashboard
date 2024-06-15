@@ -140,7 +140,6 @@ const App = () => {
       console.error("Error fetching nodes: ", error);
     } finally {
       setLoading(false);
-      console.log("big done")
     }
   }, []);
 
@@ -158,8 +157,6 @@ const App = () => {
       });
     } catch (error) {
       console.error("Error fetching data: ", error);
-    } finally {
-      console.log('data done')
     }
   }, []);
 
