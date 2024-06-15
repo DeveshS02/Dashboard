@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { parse, isBefore, format } from 'date-fns';
 import Navbar from "./components/Navbar";
 import IndexButton from "./components/IndexButton";
 import IndexPanel from "./components/IndexPanel";
@@ -32,7 +33,6 @@ var loc;
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
-  // const [userData, setUserData] = useState("");
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +40,7 @@ const App = () => {
   const [isNavClosing, setNavClosing]= useState(false);
   const [isNavOpening, setNavOpening]= useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
+
   const statusButtonRef = useRef(null);
   const indexButtonRef = useRef(null);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(true);
@@ -50,7 +51,7 @@ const App = () => {
   const [latestData, setLatestData] = useState({ tank: [], borewell: [], water: [] });
   const [filteredNames, setFilteredNames] = useState({ tank: [], borewell: [], water: [] });
   const [filteredData, setFilteredData] = useState({ tank: [], borewell: [], water: [] });
-
+  const [mergedData, setMergedData] = useState({});
 
   const [loading, setLoading] = useState(true);
   const [bounds, setBounds] = useState(null); // Default bounds
@@ -70,6 +71,21 @@ const App = () => {
         fetch_data("https://backtest-ds7q.onrender.com/water/borewellnodesC"),
         fetch_data("https://backtest-ds7q.onrender.com/water/waterC"),
       ]);
+
+      const [tankHoverData, borewellHoverData, waterHoverData] = await Promise.all([
+        fetch_data("https://backtest-ds7q.onrender.com/water/tankerdata"),
+        fetch_data("https://backtest-ds7q.onrender.com/water/borewelldata"),
+        fetch_data("https://backtest-ds7q.onrender.com/water/waterminutesdatas"),
+      ]);
+
+      let temp= { tank: tankHoverData, borewell: borewellHoverData, water: waterHoverData,}
+      temp= cleanData(temp);
+
+      setHoverData({
+        tank: temp.tank,
+        borewell: temp.borewell,
+        water: temp.water,
+      });
 
       const filterNodesByLocation = (nodes) =>
         nodes.filter((node) => node.location === loc);
@@ -124,6 +140,7 @@ const App = () => {
       console.error("Error fetching nodes: ", error);
     } finally {
       setLoading(false);
+      console.log("big done")
     }
   }, []);
 
@@ -141,33 +158,91 @@ const App = () => {
       });
     } catch (error) {
       console.error("Error fetching data: ", error);
-    }
-  }, []);
-
-  const fetchHoverData = useCallback(async () => {
-    try {
-      const [tankData, borewellData, waterData] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/tankerdata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewelldata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/waterminutesdatas"),
-      ]);
-      setHoverData({
-        tank: renameKeys(tankData),
-        borewell: renameKeys(borewellData),
-        water: renameKeys(waterData),
-      });
-    } catch (error) {
-      console.error("Error fetching data: ", error);
+    } finally {
+      console.log('data done')
     }
   }, []);
 
   useEffect(() => {
-    if(authenticated){
-      fetchNodesData();
-      fetchData();
-      // fetchHoverData();
-    }
+      if(authenticated){
+        fetchNodesData();
+        fetchData();
+      }
   }, [authenticated]);
+
+  function cleanData(data) {
+    const propertyMapping = {
+      created_at: "Last_Updated",
+      water_level: "Water Level",
+      temp: "Temperature",
+      curr_volume: "Total Volume",
+      flowrate: "Flow Rate",
+      pressure: "Pressure",
+      pressurevoltage: "Pressure Voltage",
+      totalflow: "Total Flow",
+    };
+  
+    function cleanNode(node) {
+      let cleanedNode = {};
+  
+      for (let key in node) {
+        if (propertyMapping.hasOwnProperty(key)) {
+          cleanedNode[propertyMapping[key]] = node[key];
+        }
+      }
+  
+      return cleanedNode;
+    }
+  
+    function cleanCategory(category) {
+      let cleanedCategory = {};
+  
+      for (let key in category) {
+        cleanedCategory[key] = cleanNode(category[key]);
+      }
+  
+      return cleanedCategory;
+    }
+  
+    let cleanedData = {};
+  
+    for (let category in data) {
+      cleanedData[category] = cleanCategory(data[category]);
+    }
+  
+    return cleanedData;
+  }
+
+  const merger = (data1, data2) => {
+    for (const nodeType in data1) {
+      for (const node in data1[nodeType]) {
+        const latestEntryData1 = data1[nodeType][node][data1[nodeType][node].length - 1];
+        const entryData2 = data2[nodeType][node];
+  
+        // Define the date formats
+        const formatData1 = 'MM/dd/yyyy, HH:mm:ss';
+        const formatData2 = 'dd-MM-yyyy HH:mm:ss';
+        
+        if(latestEntryData1 && entryData2){
+          // console.log(node + " " + latestEntryData1)
+          const latestCreatedAtData1 = parse(latestEntryData1.Last_Updated, formatData1, new Date());
+          const createdAtData2 = parse(entryData2.Last_Updated, formatData2, new Date());
+          
+          if (isBefore(latestCreatedAtData1, createdAtData2)) {
+            entryData2.Last_Updated = format(createdAtData2, formatData1);
+            data1[nodeType][node].push(entryData2);
+          }
+        }
+        
+      }
+    }
+  
+    return data1;
+  }
+
+  useEffect(() => {
+    setMergedData(merger(data, hoverData));
+  }, [data, hoverData]);
 
   const filterDataByNames = (data, names) =>
     Object.keys(data)
@@ -200,13 +275,13 @@ const App = () => {
   const renameKeys = (data) => {
     const keyMapping = {
       created_at: "Last_Updated",
-      waterlevel: "Water Level", //cm
-      temperature: "Temperature", //celcius
-      totalvolume: "Total Volume", //m3
-      flowrate: "Flow Rate", //kL/hr
-      pressure: "Pressure", //centibar
-      pressurevoltage: "Pressure Voltage", //centibar
-      totalflow: "Total Flow", //Litres
+      waterlevel: "Water Level", 
+      temperature: "Temperature", 
+      totalvolume: "Total Volume", 
+      flowrate: "Flow Rate", 
+      pressure: "Pressure", 
+      pressurevoltage: "Pressure Voltage", 
+      totalflow: "Total Flow", 
     };
 
     for (const outerKey in data) {
@@ -291,14 +366,14 @@ const App = () => {
      <MapComponent
        selectedOptions={selectedOptions}
        nodes={nodes}
-       latestData={latestData}
-       data={data}
+       data={filteredData}
        bounds={bounds}
        loading={loading}
        setNavClosing={setNavClosing}
        setNavOpening={setNavOpening}
        filteredNames={filteredNames}
        location={loc}
+       hoverData={hoverData}
      />
 
      <div className="fixed bottom-4 left-4 p-2 z-50">
