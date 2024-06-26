@@ -18,8 +18,9 @@ import Login from "./components/Login";
 import WelcomeContainer from "./components/Welcommodal";
 import TooltipContainer from "./components/tooltipstatus";
 import Tooltipindex from "./components/tooltipindex";
-
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import image2 from './images/hydrowfinal.png'
 const options = [
   { id: 1, label: "Water Tank", image: waterTankImage },
   { id: 2, label: "Prawah", image: prawahImage },
@@ -29,11 +30,8 @@ const options = [
   { id: 6, label: "Pipeline", image: pipelineImage },
 ];
 
-var loc;
-
 const App = () => {
-  const [authenticated, setAuthenticated] = useState(false);
-
+  const [uData, setUData] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -54,28 +52,60 @@ const App = () => {
   const [mergedData, setMergedData] = useState({});
 
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [bounds, setBounds] = useState(null); // Default bounds
 
-  const handleLogin = (isAuthenticated, Data) => {
-    setAuthenticated(isAuthenticated);
-    if (isAuthenticated) {
-      loc=Data.location;
-    }
+  const logout = () => {
+    const auth = getAuth();
+    auth.signOut().then(() => {
+      setUData(null);
+      localStorage.removeItem('uData');
+    }).catch((error) => {
+      console.error('Error signing out: ', error);
+    });
   };
 
+  useEffect(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Fetch user data from Firestore
+        const db = getFirestore();
+        const docRef = doc(db, "users", user.email);
+        getDoc(docRef).then(docSnap => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setUData(userData);
+            localStorage.setItem('uData', JSON.stringify(userData));
+          } else {
+            // User not registered
+            auth.signOut();
+            setUData(null);
+            localStorage.removeItem('uData');
+          }
+          setAuthLoading(false);
+        });
+      } else {
+        setUData(null);
+        localStorage.removeItem('uData');
+        setAuthLoading(false);
+      }
+    });
+  }, []);
   const fetchNodesData = useCallback(async () => {
     setLoading(true);
     try {
+      console.log(uData);
       const [tankNodes, borewellNodes, waterNodes] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/staticnodesC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewellnodesC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/waterC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/staticnodesC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/borewellnodesC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/waterC"),
       ]);
 
       const [tankHoverData, borewellHoverData, waterHoverData] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/tankerdata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewelldata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/waterminutesdatas"),
+        fetch_data("https://api-gateway-green.vercel.app/water/tankerdata"),
+        fetch_data("https://api-gateway-green.vercel.app/water/borewelldata"),
+        fetch_data("https://api-gateway-green.vercel.app/water/waterminutesdatas"),
       ]);
 
       let temp= { tank: tankHoverData, borewell: borewellHoverData, water: waterHoverData,}
@@ -88,7 +118,7 @@ const App = () => {
       });
 
       const filterNodesByLocation = (nodes) =>
-        nodes.filter((node) => node.location === loc);
+        nodes.filter((node) => node.location === uData.location);
 
       const filteredTankNodes = filterNodesByLocation(tankNodes);
       const filteredBorewellNodes = filterNodesByLocation(borewellNodes);
@@ -141,14 +171,14 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [uData]);
 
   const fetchData = useCallback(async () => {
     try {
       const [tankData, borewellData, waterData] = await Promise.all([
-        fetch_data("https://backtest-ds7q.onrender.com/water/tankdata"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/borewellgraphC"),
-        fetch_data("https://backtest-ds7q.onrender.com/water/latestwaterC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/tankdata"),
+        fetch_data("https://api-gateway-green.vercel.app/water/borewellgraphC"),
+        fetch_data("https://api-gateway-green.vercel.app/water/latestwaterC"),
       ]);
       setData({
         tank: renameKeys(tankData),
@@ -161,11 +191,11 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-      if(authenticated){
+      if(uData){
         fetchNodesData();
         fetchData();
       }
-  }, [authenticated]);
+  }, [uData, fetchNodesData, fetchData]);
 
   function cleanData(data) {
     const propertyMapping = {
@@ -337,10 +367,20 @@ const App = () => {
     setIsWelcomeOpen(false);
   }, []);
 
+  if(authLoading){
+    return(
+    <div className="flex justify-center items-center h-screen">
+      <div className="flex flex-col justify-center items-center">
+        <img src={image2} alt="hydrow Logo" className="h-28  mb-14" />
+        <div className="loader"></div>
+      </div>
+    </div>
+    )
+  }
   return (
     
    <div>
-    {authenticated ? (
+    {uData ? (
        <div>
         
        <>
@@ -356,7 +396,9 @@ const App = () => {
          setNavClosing={setNavClosing}
          setNavOpening={setNavOpening}
          statusButtonRef={statusButtonRef}
-         location={loc}
+         location={uData.location}
+         userData={uData}
+         handleLogout = {logout}
        />
      
 
@@ -369,7 +411,7 @@ const App = () => {
        setNavClosing={setNavClosing}
        setNavOpening={setNavOpening}
        filteredNames={filteredNames}
-       location={loc}
+       location={uData.location}
        hoverData={hoverData}
      />
 
@@ -416,7 +458,7 @@ const App = () => {
      
    </div>
     ):(
-      <Login handleLogin={handleLogin} />
+      <Login setUData={setUData}/>
     )}
    </div>
   );

@@ -4,6 +4,7 @@ import image2 from "../images/hydrowfinal.png";
 import imagedrop from "../images/Hydrowlogo.png";
 import Dropdown from "./Dropdown";
 import StatusNode from "./status_node";
+import Dropdownprofile from "./DropdownProfile.jsx";
 
 const Navbar = ({
   dropdownLabel,
@@ -17,7 +18,9 @@ const Navbar = ({
   setNavOpening,
   setNavClosing,
   statusButtonRef,
-  location
+  userData,
+  handleLogout,
+  location,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -61,34 +64,26 @@ const Navbar = ({
       >
         <div className="py-3 flex justify-between items-center right-2 width-[100%]">
           <div className="flex min-w-[80%] md:min-w-min">
-            <div className="pl-5 md:pl-8 flex items-center">
-              <a href="/">
-                <img
-                  src={image}
-                  alt="IIIT Logo"
-                  className="h-8 md:h-10 mr-2 md:mr-1"
-                />
-              </a>
+            <div className="pl-2 md:pl-8 flex items-center">
               <a href="http://hydrowverse.com/">
                 <img
                   src={image2}
                   alt="hydrow Logo"
-                  className=" hidden md:block h-10 md:mr-4"
-                />
-              </a>
-              <a href="http://hydrowverse.com/">
-                <img
-                  src={imagedrop}
-                  alt="hydrow Logo"
-                  className="h-10 md:hidden"
+                  className=" md:block h-10 mr-1 md:mr-4"
                 />
               </a>
             </div>
             <div className="flex min-w-[60%] md:min-w-fit justify-center">
-              <h1 className="text-3xl tracking-wide font-sans">WaterIoT</h1>
+              <h1 className="text-3xl tracking-wide font-sans">Intelligence <b>Live</b></h1>
             </div>
           </div>
           <div className="flex items-center justify-center gap-5 md:hidden">
+            <div className="grid">
+              <Dropdownprofile
+                userData= {userData} 
+                handleLogout={handleLogout}
+              />
+            </div>
             <div className="mr-6">
               <button
                 className="text-white focus:outline-none"
@@ -111,12 +106,10 @@ const Navbar = ({
               </button>
             </div>
           </div>
+
           <div className="hidden md:flex items-center space-x-11 mr-7 text-lg">
-            <a href="https://www.iiit.ac.in/" className="hover:text-blue-300">
-              IIIT
-            </a>
-            <a href="https://spcrc.iiit.ac.in/" className="hover:text-blue-300">
-              SPCRC
+            <a href="https://hydrowverse.com/" className="hover:text-blue-300">
+              Merch
             </a>
             <button
               ref={statusButtonRef}
@@ -131,6 +124,12 @@ const Navbar = ({
                 items={dropdownItems}
                 selectedOptions={selectedOptions}
                 toggleOption={toggleOption}
+              />
+            </div>
+            <div className="grid">
+              <Dropdownprofile
+                userData= {userData}
+                handleLogout={handleLogout}
               />
             </div>
           </div>
