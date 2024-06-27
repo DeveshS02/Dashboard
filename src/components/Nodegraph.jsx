@@ -329,9 +329,9 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
       {(viewMode === 'single' || viewMode === 'all') && (
         <>
           <div className='centered-title'>{nodeName}</div>
-          <div className='centered-title flex justify-between align-middle'>
+          <div className='centered-title flex flex-col gap-2 md:flex-row justify-between align-middle'>
             {(
-              <span className="latest-data opacity-0">
+              <span className="latest-data hideme">
                 this is how to scam bruh 
               </span>
             )}
@@ -427,7 +427,7 @@ const NodeGraph = ({ data, attributes, nodeType, allData, nodeName, analogOrDigi
                   ))}
                 </ul>
               </div>
-              <div className='grow'>
+              <div className='mid-box'>
                 <h3 className="centered-title">
                   {(() => {
                     switch (nodeType) {

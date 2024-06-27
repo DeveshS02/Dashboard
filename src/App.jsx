@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { parse, isBefore, format } from 'date-fns';
 import Navbar from "./components/Navbar";
-import IndexButton from "./components/IndexButton";
-import IndexPanel from "./components/IndexPanel";
-import MapComponent from "./components/Map"; // Ensure the import is correct
+import Index from "./components/Index";
+import MapComponent from "./components/Map";
 import waterTankImage from "./images/water_tank.png";
-import imagepath from "./images/Introfina.png";
 import prawahImage from "./images/water-meter-new.png";
 import shenitechImage from "./images/sheni-new.png";
 import sumpImage from "./images/sump.png";
 import boreWellImage from "./images/borewell.png";
 import pipelineImage from "./images/pipeline.png";
 import fetch_data from "./utils/fetch_data";
-import extractData from "./utils/extract_last_array";
-import ImageDisplay from "./components/ImageDisplay"; // Import the new component
 import Login from "./components/Login";
 import WelcomeContainer from "./components/Welcommodal";
 import TooltipContainer from "./components/tooltipstatus";
@@ -21,6 +17,7 @@ import Tooltipindex from "./components/tooltipindex";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import image2 from './images/hydrowfinal.png'
+
 const options = [
   { id: 1, label: "Water Tank", image: waterTankImage },
   { id: 2, label: "Prawah", image: prawahImage },
@@ -33,8 +30,6 @@ const options = [
 const App = () => {
   const [uData, setUData] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const [isNavClosing, setNavClosing]= useState(false);
   const [isNavOpening, setNavOpening]= useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
@@ -46,7 +41,6 @@ const App = () => {
   const [nodes, setNodes] = useState({ tank: [], borewell: [], water: [] });
   const [data, setData] = useState({ tank: [], borewell: [], water: [] });
   const [hoverData, setHoverData] = useState({ tank: [], borewell: [], water: [] });
-  const [latestData, setLatestData] = useState({ tank: [], borewell: [], water: [] });
   const [filteredNames, setFilteredNames] = useState({ tank: [], borewell: [], water: [] });
   const [filteredData, setFilteredData] = useState({ tank: [], borewell: [], water: [] });
   const [mergedData, setMergedData] = useState({});
@@ -92,10 +86,10 @@ const App = () => {
       }
     });
   }, []);
+
   const fetchNodesData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log(uData);
       const [tankNodes, borewellNodes, waterNodes] = await Promise.all([
         fetch_data("https://api-gateway-green.vercel.app/water/staticnodesC"),
         fetch_data("https://api-gateway-green.vercel.app/water/borewellnodesC"),
@@ -291,14 +285,6 @@ const App = () => {
     });
   }, [nodes, data]);
 
-  useEffect(() => {
-    setLatestData({
-      tank: extractData(data.tank),
-      borewell: extractData(data.borewell),
-      water: extractData(data.water),
-    });
-  }, [data]);
-
   const renameKeys = (data) => {
     const keyMapping = {
       created_at: "Last_Updated",
@@ -339,21 +325,6 @@ const App = () => {
     });
   };
 
-  const handleButtonClick = () => {
-    setIsOpen(true);
-    setIsClosing(false);
-  };
-  const handleClose = () => {
-    setIsClosing(true);
-  };
-
-  const handleAnimationEnd = () => {
-    if (isClosing) {
-      setIsOpen(false);
-      setIsClosing(false);
-    }
-  };
-
   const getDropdownLabel = () => {
     if (selectedOptions.length === 0) return "All Nodes";
     if (selectedOptions.length > 1) return "Multi";
@@ -362,6 +333,7 @@ const App = () => {
     );
     return selectedOption ? selectedOption.label : "All Nodes";
   };
+
   const handleCloseContainers = useCallback(() => {
     setShowTooltip(false);
     setIsWelcomeOpen(false);
@@ -415,27 +387,12 @@ const App = () => {
        hoverData={hoverData}
      />
 
-     <div className="fixed bottom-4 left-4 p-2 z-50">
-       {!isOpen && !isClosing && (
-         <IndexButton handleButtonClick={handleButtonClick} indexButtonRef={indexButtonRef}/>
-       )}
-       <div
-         className={`${
-           isOpen ? (isClosing ? "closing" : "blockk") : "hiddenn"
-         }`}
-         onAnimationEnd={handleAnimationEnd}
-       >
-         {isOpen && (
-           <IndexPanel
-             isOpen={isOpen}
-             handleClose={handleClose}
-             options={options}
-             selectedOptions={selectedOptions}
-             toggleOption={toggleOption}
-           />
-         )}
-       </div>
-     </div>
+      <Index
+        indexButtonRef={indexButtonRef}
+        options={options}
+        selectedOptions={selectedOptions}
+        toggleOption={toggleOption}
+      />  
      {!loading && (
        <div>
          <WelcomeContainer

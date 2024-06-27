@@ -103,6 +103,12 @@
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+  .modal{
+    height: 100vh;
+    width: 100vw;
+  }
+}
 
 /* custom loading animation App.jsx*/
 
@@ -227,6 +233,7 @@ border: 0.1rem solid #97266d;
 border-radius: 1rem;
 color: #97266d;
 padding: 0.5rem;
+max-width: 300px;
 }
 
 .transparent-dropdown option {
@@ -287,6 +294,7 @@ word-break: break-all;
 padding: 0.5rem;
 border-right: 0.09rem solid #97266d;
 margin-top: 2rem;
+min-width: 170px;
 }
 
 .node-item {
@@ -309,18 +317,28 @@ margin-top: 5px;
 .compare-view-container {
 display: flex;
 height: 100%;
+width: 100%;
 }
 
 .centered-title {
 border-radius: 3rem;
-margin-top: 0.4rem;
-padding: 0.5rem;
 padding-left: 1.2rem;
 padding-right: 1.2rem;
 text-align: center;
 font-size: 1.2rem;
 font-weight: 600;
 width: 100%;
+margin-top: 0.6rem;
+}
+
+.hideme{
+  opacity: 0;
+  display: block
+}
+
+.mid-box{
+  width: 80%;
+  margin: auto;
 }
 
 .compare{
@@ -330,6 +348,10 @@ justify-content: space-between;
 }
 
 @media (max-width: 768px) {
+
+.hideme{
+    display: none;
+  }
 .controls {
   flex-direction: column;
   align-items: center;
@@ -363,14 +385,19 @@ justify-content: space-between;
   align-self: flex-end;
 }
 
+.controls .transparent-dropdown {
+  max-width: 150px;
+}
+
 .controls .btn-secondary {
   align-self: center;
   margin-bottom: 0;
 }
 
 .selected-nodes {
-  width: 100%;
-  max-width: none;
+  width: 60%;
+  margin: auto;
+  margin-top: 1rem;
   border-right: none;
   padding-left: 0;
   border-bottom: 1px #274068 solid;
@@ -445,13 +472,15 @@ background:#750048;
     backdrop-filter: blur(13px);
     overflow: hidden; 
 }
+
 .acardcss{
   background:rgb(255, 255, 255, 0.4);
   box-shadow: 1px 1px 1px rgba(0, 180, 216, 0.3), 
   -1px -1px 1px rgba(0, 180, 216, 0.3), 
   inset -3px -3px 5px rgba(255, 255, 255, 0.6), 
   inset 3px 3px 5px rgba(255, 255, 255, 0.6);
-  width: 270px;
+  width: 26%;
+  min-width: 200px;
 }
 .icardcss{
   background:rgb(255, 255, 255, 0.4);
@@ -459,7 +488,8 @@ background:#750048;
   -1px -1px 1px rgba(0, 180, 216, 0.3), 
   inset -3px -3px 5px rgba(255, 255, 255, 0.6), 
   inset 3px 3px 5px rgba(255, 255, 255, 0.6);
- width: 270px;
+  width: 26%;
+  min-width: 200px;
 }
 .heading{
    overflow:scroll;
@@ -543,6 +573,11 @@ background-color: rgb(8, 51, 68);
   animation-delay: 0.03s;
 }
 
+@media (max-width: 768px) { 
+  .maincss {
+    width: 100vw;
+  }
+}
 
 /* CSS for Index */
 
